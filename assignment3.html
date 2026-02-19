@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment 3 - Video Game Sales</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+
+<body>
+
+<h1>Assignment 3: Video Game Sales Visualizations</h1>
+<p>These charts explore global sales patterns, changes over time, and platform/publisher comparisons.</p>
+
+<h2>1) Which genres sell the most globally?</h2>
+<div id="vis1"></div>
+
+<h2>2) How have global sales changed over time?</h2>
+<div id="vis2"></div>
+
+<h2>3) Which platforms sell the most in North America?</h2>
+<div id="vis3"></div>
+
+<h2>4) Which publishers have the highest total global sales?</h2>
+<div id="vis4"></div>
+
+<script>
+const vis1 = {
+  $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+  data: { url: "dataset/videogames_wide.csv" },
+  mark: { type: "bar" },
+  encoding: {
+    x: { field: "Genre", type: "nominal", sort: "-y", title: "Genre" },
+    y: { aggregate: "sum", field: "Global_Sales", type: "quantitative", title: "Global Sales (millions)" },
+    color: { field: "Genre", type: "nominal", legend: null, scale: { scheme: "tableau10" } },
+    tooltip: [
+      { field: "Genre", type: "nominal" },
+      { aggregate: "sum", field: "Global_Sales", type: "quantitative", format: ".2f", title: "Total Global Sales" }
+    ]
+  }
+};
+
+const vis2 = {
+  $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+  data: { url: "dataset/videogames_wide.csv" },
+  transform: [{ filter: "isValid(datum.Year) && datum.Year != 'N/A'" }],
+  mark: { type: "line", point: true },
+  encoding: {
+    x: { field: "Year", type: "ordinal", title: "Year" },
+    y: { aggregate: "sum", field: "Global_Sales", type: "quantitative", title: "Global Sales (millions)" },
+    color: { value: "#4E79A7" },
+    tooltip: [
+      { field: "Year", type: "ordinal" },
+      { aggregate: "sum", field: "Global_Sales", type: "quantitative", format: ".2f", title: "Total Global Sales" }
+    ]
+  }
+};
+
+const vis3 = {
+  $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+  data: { url: "dataset/videogames_wide.csv" },
+  transform: [
+    { aggregate: [{ op: "sum", field: "NA_Sales", as: "TotalNA" }], groupby: ["Platform"] },
+    { window: [{ op: "rank", as: "rank" }], sort: [{ field: "TotalNA", order: "descending" }] },
+    { filter: "datum.rank <= 12" }
+  ],
+  mark: { type: "bar" },
+  encoding: {
+    y: { field: "Platform", type: "nominal", sort: "-x", title: "Platform" },
+    x: { field: "TotalNA", type: "quantitative", title: "NA Sales (millions)" },
+    color: { field: "Platform", type: "nominal", legend: null, scale: { scheme: "set2" } },
+    tooltip: [
+      { field: "Platform", type: "nominal" },
+      { field: "TotalNA", type: "quantitative", format: ".2f", title: "Total NA Sales" }
+    ]
+  }
+};
+
+const vis4 = {
+  $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+  data: { url: "dataset/videogames_wide.csv" },
+  transform: [
+    { aggregate: [{ op: "sum", field: "Global_Sales", as: "TotalGlobal" }], groupby: ["Publisher"] },
+    { window: [{ op: "rank", as: "rank" }], sort: [{ field: "TotalGlobal", order: "descending" }] },
+    { filter: "datum.rank <= 10" }
+  ],
+  mark: { type: "bar" },
+  encoding: {
+    y: { field: "Publisher", type: "nominal", sort: "-x", title: "Publisher" },
+    x: { field: "TotalGlobal", type: "quantitative", title: "Global Sales (millions)" },
+    color: { value: "#59A14F" },
+    tooltip: [
+      { field: "Publisher", type: "nominal" },
+      { field: "TotalGlobal", type: "quantitative", format: ".2f", title: "Total Global Sales" }
+    ]
+  }
+};
+
+vegaEmbed("#vis1", vis1, { actions: false });
+vegaEmbed("#vis2", vis2, { actions: false });
+vegaEmbed("#vis3", vis3, { actions: false });
+vegaEmbed("#vis4", vis4, { actions: false });
+</script>
+
+</body>
+</html>
+
